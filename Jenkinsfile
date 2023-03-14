@@ -1,57 +1,33 @@
-pipeline {
+pipeline{
     agent any
-     tools {
-        maven 'Maven' 
-        }
-    stages {
+    
+    tools{
+        maven "Maven"
+    }
+
+    stages{
         stage("Test"){
             steps{
-                // mvn test
-                sh "mvn test"
-                slackSend channel: 'youtubejenkins', message: 'Job Started'
-                
+                bat "mvn test"
             }
-            
         }
+
         stage("Build"){
             steps{
-                sh "mvn package"
-                
+                bat "mvn build"
             }
-            
         }
-        stage("Deploy on Test"){
-            steps{
-                // deploy on container -> plugin
-                deploy adapters: [tomcat9(credentialsId: 'tomcatserverdetails1', path: '', url: 'http://192.168.0.118:8080')], contextPath: '/app', war: '**/*.war'
-              
-            }
-            
-        }
-        stage("Deploy on Prod"){
-             input {
-                message "Should we continue?"
-                ok "Yes we Should"
-            }
-            
-            steps{
-                // deploy on container -> plugin
-                deploy adapters: [tomcat9(credentialsId: 'tomcatserverdetails1', path: '', url: 'http://192.168.0.119:8080')], contextPath: '/app', war: '**/*.war'
 
+        stage("Deploy on test"){
+            steps{
+                deploy adapters: [tomcat9(credentialsId: '15a03abb-48c4-4307-b9c3-ea4b1fb1a893', path: '', url: 'http://10.31.160.250:8080')], contextPath: '/app', war: '**/*.war'
             }
         }
-    }
-    post{
-        always{
-            echo "========always========"
-        }
-        success{
-            echo "========pipeline executed successfully ========"
-             slackSend channel: 'youtubejenkins', message: 'Success'
-        }
-        failure{
-            echo "========pipeline execution failed========"
-             slackSend channel: 'youtubejenkins', message: 'Job Failed'
+        stage("Deploy on prod"){
+            steps{
+                deploy adapters: [tomcat9(credentialsId: '15a03abb-48c4-4307-b9c3-ea4b1fb1a893', path: '', url: 'http://10.31.160.251:8080')], contextPath: '/app', war: '**/*.war'
+            }
         }
     }
 }
+   
